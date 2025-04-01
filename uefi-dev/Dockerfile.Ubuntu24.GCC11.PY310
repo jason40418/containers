@@ -1,0 +1,84 @@
+##
+#  @file
+#  Dockerfile for building BIOS firmware on Ubuntu Linux.
+#
+#  This file containing the below combination of software:
+#    - Ubuntu 24.04
+#    - GCC 11
+#    - Python 3.10
+#
+#  @copyright
+#  Copyright (c) 2025, Jason Lin. All rights reserved.<BR>
+#
+#  SPDX-License-Identifier: BSD-3-Clause
+#
+#  @par reference
+#
+##
+
+FROM ubuntu:24.04
+
+#
+# Arguments for building the container image.
+#
+ARG PYHON_VERSION=3.10
+ARG GCC_VERSION=11
+
+#
+# Add the required apt repositories.
+#
+RUN apt update && \
+    apt install -y \
+      software-properties-common
+
+RUN add-apt-repository -y ppa:deadsnakes/ppa && \
+    add-apt-repository -y ppa:ubuntu-toolchain-r/test && \
+    apt update
+
+#
+# Add the support for 32-bit applications.
+#
+RUN dpkg --add-architecture i386
+
+#
+# Install the required packages for compiling the firmware.
+#
+RUN apt install -y \
+      git \
+      git-lfs \
+      build-essential \
+      gcc-${GCC_VERSION} \
+      g++-${GCC_VERSION} \
+      nasm \
+      uuid-dev \
+      python${PYHON_VERSION} \
+      python${PYHON_VERSION}-dev \
+      python3-pip \
+      python3-setuptools \
+      python3-wheel \
+      wine
+
+#
+# Install the required Python packages.
+#
+RUN python${PYHON_VERSION} -m pip install \
+      pyyaml \
+      toml \
+      pefile \
+      ply \
+      swig \
+      pylibfdt
+
+#
+# Set the link files for changing the default application versions.
+#
+RUN ln -sf /usr/bin/python3 /usr/bin/python && \
+    ln -sf /usr/bin/python${PYHON_VERSION} /usr/bin/python3 && \
+    ln -sf /usr/bin/gcc-${GCC_VERSION} /usr/bin/gcc
+
+#
+# Git system configuration.
+#
+RUN git config --system --add safe.directory "*"
+
+ENTRYPOINT [ "/bin/bash" ]
