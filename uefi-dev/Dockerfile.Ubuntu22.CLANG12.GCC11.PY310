@@ -1,0 +1,104 @@
+##
+#  @file
+#  Dockerfile for building BIOS firmware on Ubuntu Linux.
+#
+#  This file containing the below combination of software:
+#    - Ubuntu 22.04
+#    - CLANG 12
+#    - GCC 12
+#    - LLVM 12
+#    - Python 3.10
+#
+#  @copyright
+#  Copyright (c) 2025, Jason Lin. All rights reserved.<BR>
+#
+#  SPDX-License-Identifier: BSD-3-Clause
+#
+#  @par reference
+#
+##
+
+FROM ubuntu:22.04
+
+#
+# Arguments for building the container image.
+#
+ARG CLANG_VERSION=12
+ARG GCC_VERSION=11
+ARG LLD_VERSION=12
+ARG LLDB_VERSION=12
+ARG LLVM_VERSION=12
+ARG PYTHON_VERSION=3.10
+
+#
+# Add the required apt repositories.
+#
+RUN apt update && \
+    apt install -y \
+      software-properties-common
+
+RUN add-apt-repository -y ppa:deadsnakes/ppa && \
+    add-apt-repository -y ppa:ubuntu-toolchain-r/test && \
+    apt update
+
+#
+# Add the support for 32-bit applications.
+#
+RUN dpkg --add-architecture i386
+
+#
+# Install the required packages for compiling the firmware.
+#
+RUN apt install -y \
+      git \
+      git-lfs \
+      build-essential \
+      clang-${CLANG_VERSION} \
+      gcc-${GCC_VERSION} \
+      g++-${GCC_VERSION} \
+      lld-${LLD_VERSION} \
+      lldb-${LLDB_VERSION} \
+      llvm-${LLVM_VERSION} \
+      nasm \
+      uuid-dev \
+      python${PYTHON_VERSION} \
+      python${PYTHON_VERSION}-dev \
+      python3-pip \
+      python3-setuptools \
+      python3-wheel \
+      wine
+
+#
+# Upgrade pip, setuptools, and wheel to the latest versions.
+#
+RUN python${PYTHON_VERSION} -m pip install --upgrade pip && \
+    python${PYTHON_VERSION} -m pip install --upgrade setuptools wheel
+
+#
+# Install the required Python packages.
+#
+RUN python${PYTHON_VERSION} -m pip install \
+      pyyaml \
+      toml \
+      pefile \
+      ply \
+      swig \
+      pylibfdt
+
+#
+# Set the link files for changing the default application versions.
+#
+RUN ln -sf /usr/bin/python3 /usr/bin/python && \
+    ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python3 && \
+    ln -sf /usr/bin/clang-${CLANG_VERSION} /usr/bin/clang && \
+    ln -sf /usr/bin/gcc-${GCC_VERSION} /usr/bin/gcc && \
+    ln -sf /usr/bin/lld-link-${LLD_VERSION} /usr/bin/lld-link && \
+    ln -sf /usr/bin/llvm-rc-${LLVM_VERSION} /usr/bin/llvm-rc && \
+    ln -sf /usr/bin/llvm-lib-${LLVM_VERSION} /usr/bin/llvm-lib
+
+#
+# Git system configuration.
+#
+RUN git config --system --add safe.directory "*"
+
+ENTRYPOINT [ "/bin/bash" ]
