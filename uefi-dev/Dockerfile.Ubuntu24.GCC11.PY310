@@ -21,7 +21,7 @@ FROM ubuntu:24.04
 #
 # Arguments for building the container image.
 #
-ARG PYHON_VERSION=3.10
+ARG PYTHON_VERSION=3.10
 ARG GCC_VERSION=11
 
 #
@@ -51,8 +51,8 @@ RUN apt install -y \
       g++-${GCC_VERSION} \
       nasm \
       uuid-dev \
-      python${PYHON_VERSION} \
-      python${PYHON_VERSION}-dev \
+      python${PYTHON_VERSION} \
+      python${PYTHON_VERSION}-dev \
       python3-pip \
       python3-setuptools \
       python3-wheel \
@@ -61,7 +61,7 @@ RUN apt install -y \
 #
 # Install the required Python packages.
 #
-RUN python${PYHON_VERSION} -m pip install \
+RUN python${PYTHON_VERSION} -m pip install \
       pyyaml \
       toml \
       pefile \
@@ -73,7 +73,7 @@ RUN python${PYHON_VERSION} -m pip install \
 # Set the link files for changing the default application versions.
 #
 RUN ln -sf /usr/bin/python3 /usr/bin/python && \
-    ln -sf /usr/bin/python${PYHON_VERSION} /usr/bin/python3 && \
+    ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python3 && \
     ln -sf /usr/bin/gcc-${GCC_VERSION} /usr/bin/gcc
 
 #
