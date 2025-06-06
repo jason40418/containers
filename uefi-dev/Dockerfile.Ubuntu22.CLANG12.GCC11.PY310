@@ -37,14 +37,14 @@ RUN apt update && \
     apt install -y \
       software-properties-common
 
-RUN add-apt-repository -y ppa:deadsnakes/ppa && \
-    add-apt-repository -y ppa:ubuntu-toolchain-r/test && \
-    apt update
-
 #
 # Add the support for 32-bit applications.
 #
 RUN dpkg --add-architecture i386
+
+RUN add-apt-repository -y ppa:deadsnakes/ppa && \
+    add-apt-repository -y ppa:ubuntu-toolchain-r/test && \
+    apt update
 
 #
 # Install the required packages for compiling the firmware.
