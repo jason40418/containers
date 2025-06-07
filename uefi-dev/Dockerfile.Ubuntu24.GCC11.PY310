@@ -6,6 +6,8 @@
 #    - Ubuntu 24.04
 #    - GCC 11
 #    - Python 3.10
+#    - nodejs 22
+#    - nuget
 #
 #  @copyright
 #  Copyright (c) 2025, Jason Lin. All rights reserved.<BR>
@@ -22,6 +24,7 @@ FROM ubuntu:24.04
 # Arguments for building the container image.
 #
 ARG GCC_VERSION=11
+ARG NODE_JS_VERSION=22
 ARG PYTHON_VERSION=3.10
 
 #
@@ -29,6 +32,8 @@ ARG PYTHON_VERSION=3.10
 #
 RUN apt update && \
     apt install -y \
+      ca-certificates \
+      gnupg \
       software-properties-common
 
 #
@@ -37,18 +42,31 @@ RUN apt update && \
 RUN dpkg --add-architecture i386
 
 RUN add-apt-repository -y ppa:deadsnakes/ppa && \
-    add-apt-repository -y ppa:ubuntu-toolchain-r/test && \
-    apt update
+    add-apt-repository -y ppa:ubuntu-toolchain-r/test
+
+#
+# Add the mono repository and its GPG key.
+#
+RUN gpg --homedir /tmp \
+        --no-default-keyring \
+        --keyring /usr/share/keyrings/mono-official-archive-keyring.gpg \
+        --keyserver hkp://keyserver.ubuntu.com:80 \
+        --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+
+RUN echo "deb [signed-by=/usr/share/keyrings/mono-official-archive-keyring.gpg] https://download.mono-project.com/repo/ubuntu stable-focal main" | tee /etc/apt/sources.list.d/mono-official-stable.list
 
 #
 # Install the required packages for compiling the firmware.
 #
-RUN apt install -y \
+RUN apt update -y && \
+    apt install -y \
+      curl \
       git \
       git-lfs \
       build-essential \
       gcc-${GCC_VERSION} \
       g++-${GCC_VERSION} \
+      mono-devel \
       nasm \
       uuid-dev \
       python${PYTHON_VERSION} \
@@ -65,9 +83,23 @@ RUN python${PYTHON_VERSION} -m pip install \
       pyyaml \
       toml \
       pefile \
+      pipenv \
       ply \
       swig \
       pylibfdt
+
+#
+# Install Node.js from the NodeSource repository.
+#
+RUN curl -fsSL https://deb.nodesource.com/setup_${NODE_JS_VERSION}.x | bash -
+RUN apt install -y \
+      nodejs
+
+#
+# Install the required Node.js packages.
+#
+RUN npm install -g \
+      cspell
 
 #
 # Set the link files for changing the default application versions.
@@ -80,5 +112,15 @@ RUN ln -sf /usr/bin/python3 /usr/bin/python && \
 # Git system configuration.
 #
 RUN git config --system --add safe.directory "*"
+
+#
+# Installation of nuget tool.
+#
+RUN curl -o /usr/local/bin/nuget.exe https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
+
+#
+# Create as alias for nuget
+#
+RUN echo 'alias nuget="mono /usr/local/bin/nuget.exe"' >> ~/.bashrc
 
 ENTRYPOINT [ "/bin/bash" ]
