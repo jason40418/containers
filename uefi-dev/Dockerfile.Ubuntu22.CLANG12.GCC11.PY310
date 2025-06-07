@@ -5,7 +5,7 @@
 #  This file containing the below combination of software:
 #    - Ubuntu 22.04
 #    - CLANG 12
-#    - GCC 12
+#    - GCC 11
 #    - LLVM 12
 #    - Python 3.10
 #    - nodejs 22
@@ -30,15 +30,15 @@ ARG GCC_VERSION=11
 ARG LLD_VERSION=12
 ARG LLDB_VERSION=12
 ARG LLVM_VERSION=12
-ARG PYTHON_VERSION=3.10
 ARG NODE_JS_VERSION=22
+ARG PYTHON_VERSION=3.10
 
 #
 # Add the required apt repositories.
 #
 RUN apt update && \
     apt install -y \
-      ca-certificates\
+      ca-certificates \
       gnupg \
       software-properties-common
 
@@ -48,8 +48,7 @@ RUN apt update && \
 RUN dpkg --add-architecture i386
 
 RUN add-apt-repository -y ppa:deadsnakes/ppa && \
-    add-apt-repository -y ppa:ubuntu-toolchain-r/test && \
-    apt update
+    add-apt-repository -y ppa:ubuntu-toolchain-r/test
 
 #
 # Add the mono repository and its GPG key.

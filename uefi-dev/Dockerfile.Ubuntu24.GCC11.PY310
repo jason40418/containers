@@ -58,7 +58,7 @@ RUN echo "deb [signed-by=/usr/share/keyrings/mono-official-archive-keyring.gpg] 
 #
 # Install the required packages for compiling the firmware.
 #
-RUN apt update -y && \
+RUN apt update && \
     apt install -y \
       curl \
       git \
@@ -75,6 +75,12 @@ RUN apt update -y && \
       python3-setuptools \
       python3-wheel \
       wine
+
+#
+# Upgrade pip, setuptools, and wheel to the latest versions.
+#
+RUN python${PYTHON_VERSION} -m pip install --upgrade pip && \
+    python${PYTHON_VERSION} -m pip install --upgrade setuptools wheel
 
 #
 # Install the required Python packages.
